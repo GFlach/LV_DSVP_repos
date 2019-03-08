@@ -319,3 +319,86 @@ def demo_aliasing():
     xlabel('Zeit in s')
     title('Sinusschwingungen zu einer Abtastwertefolge')
     grid(True)
+
+def get_data(file):
+    fs, data = load_data_o(file)
+    data = data/(max(abs(min(data)), max(data)))
+    t = np.linspace(0, len(data)/fs, len(data))
+    plt.figure(figsize=(15,4))
+    plt.plot(t, data)
+    plt.xlabel('t in s')
+    plt.ylabel('x(t)')
+    plt.title('Originalsignal')
+    plt.xlabel('t in s')
+    plt.grid()
+    plt.show()
+    return data, fs
+
+def smooth(y, box_pts):
+    box = np.ones(box_pts)/box_pts
+    y_smooth = np.convolve(y, box, mode='same')
+    return y_smooth
+
+def get_gain(zf_len, fs, data, smooth_fac):
+    plt.figure(figsize=(15,4))
+    #zf_len = 500                     # Zeitfenster ms
+    zf_atw = int(zf_len*fs/1000)          # ATW pro Zeitfenster
+    dur_ms = len(data)/fs*1000       # Signaldauer in ms
+    anz_zf = int(dur_ms//zf_len) # Anzahl ZF
+    max_sig = np.zeros(anz_zf)
+    gain_fac = np.zeros(anz_zf)
+    gain_fac1 = np.zeros(anz_zf)
+    for i in range(anz_zf):
+        max_sig[i] = np.mean((data[i*zf_atw:(i+1)*zf_atw])**2)
+    gain_fac = 1/max_sig
+    gain_fac1 = smooth(gain_fac, smooth_fac)
+    plt.plot(max_sig, 'r', label = 'Signalmaximum')
+    plt.plot(gain_fac, 'b',  label = 'maximale Verstärkung')
+    plt.plot(gain_fac1, 'g',  label = 'maximale Verstärkung (geglättet)')
+    plt.xlabel('Zeitfenster (Dauer: ' + str(zf_len) + ' ms)')
+    plt.title('Verstärkungen')
+    plt.legend()
+    plt.grid()
+    plt.show()
+    data_dyn = np.zeros(len(data))
+    for i in range(anz_zf):
+        data_dyn[i*zf_atw:(i+1)*zf_atw] = data[i*zf_atw:(i+1)*zf_atw]*gain_fac1[i]/max(abs(data[i*zf_atw:(i+1)*zf_atw]*gain_fac1[i]))
+    plt.figure(figsize=(15,4))
+    t = np.linspace(0, len(data)/fs, len(data))
+    plt.plot(t, data_dyn)
+    plt.grid()
+    plt.title('bearbeitetes Signal')
+    plt.xlabel('t in s')
+    plt.show()
+    return data_dyn
+
+def data_comp(data_dyn, data, fs):
+    plt.figure(figsize=(15,4))
+    t = np.linspace(0, len(data)/fs, len(data))
+    plt.plot(t, data_dyn, label='bearbeitetes Signal')
+    plt.plot(t, data, label='unbearbeitetes Signal')
+    plt.legend()
+    plt.grid()
+    plt.title('Vergleich beider Signale')
+    plt.xlabel('t in s')
+    plt.savefig('image\\dynamic.jpg')
+    plt.show()
+
+def test_dyn(file, threshold, ratio, typ):
+    weight = dc.dynamic.Dynamic(threshold=threshold, ratio=ratio, typ=typ)
+    o_sig, fs = read_sig(file)
+    d_sig = sig_komp(o_sig, weight)
+    n = np.linspace(0, (len(o_sig)-1)/fs,len(o_sig))
+    plt.figure(figsize=(15,4))
+    plt.subplot(121)
+    plt.plot(n, o_sig)
+    plt.grid()
+    plt.title('Originalsignal')
+    plt.subplot(122)
+    plt.plot(n, d_sig)
+    plt.title('Signal mit Dynamikkompression')
+    plt.grid()
+    plt.show()
+    data = np.append(o_sig, d_sig)
+    return data, fs
+
