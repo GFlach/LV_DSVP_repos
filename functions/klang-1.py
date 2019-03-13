@@ -10,21 +10,14 @@ def adsr_profile(env, x):
     ED = env[3]
     ES = env[4]
     tR = len(x)
-    if tA == 0:
-        A = 1
-        NA = 3
-    else:
-        NA = floor(tA * tR) + 1
-        A = 1/(NA -1)
+    NA = floor(tA * tR) + 1
+    A = 1/(NA -1)
     E = 0
     y = np.zeros(tR)
     for k in np.arange(2, NA):
         E = E + A
         y[int(k)] = E * x[int(k)]
-    if tD == tA:
-        ND = 1
-    else:
-        ND = floor((tD - tA) * tR)
+    ND = floor((tD - tA) * tR)
     D = (1 - ED)/ND
     for k in np.arange(NA, NA + ND):
         E = E - D
@@ -60,43 +53,55 @@ def exponent_profile(env, x):
         y[int(k)] = E * x[int(k)]
     return y
     
-def triangle(f, fs, dur):
-    t = np.arange(1/fs,dur +1/fs,1/fs)
-    tri = np.sin(t * 0)
-    for a in np.arange(1,40,2):
-        tri = tri + 8/(a**2 * np.pi**2) * np.cos(a * 2*np.pi*f*t)
-#    plt.plot(t,tri)
-#    plt.xlabel('t in s')
-#    plt.show()
-    return tri
-      
-def create_music(pitch, duration, stimulus, env, tempo, fs, ow=[]):
+def triangle(rel_dur, frequency, amplitude, fs, tempo):
+    section = fs // (4 * frequency)
+    n = amplitude/section
+    s_p = []
+    s = []
+    x = np.arange(0,section)
+    s1 = n * x
+    s_p = np.append(s_p, s1)
+    s2 = -n * x + amplitude
+    s_p = np.append(s_p, s2)
+    s3 = -n * x
+    s_p = np.append(s_p, s3)
+    s4 = s1 - amplitude
+    s_p = np.append(s_p, s4)
+    for i in np.arange(0, rel_dur * frequency * tempo):
+        s = np.append(s, s_p)
+    return s
+
+def create_music(pitch, duration, stimulus, env, tempo, fs, akk):
     music = []
     for k in np.arange(0,len(pitch)):
         L = tempo * fs * duration[k]
         n = np.arange(0,L-1)
-        if stimulus == 'ton':
+        if stimulus == 'sin':
             w = 2 * np.pi/fs * pitch[k]
-            s = np.cos(w * n)
-        if stimulus == 'klang':
-            s = np.cos(n * 0)
+            s = np.sin(w * n)
+            ak = np.zeros(len(s))
+        if stimulus == 'sin_ow':
             w = 2 * np.pi/fs * pitch[k]
-            for a in np.arange(0, len(ow)):
-                s = s + ow[a] * np.cos(a * w * n)
+            s = np.sin(w * n) + 0.25 * np.sin(2 * w * n) + 0.25 * np.sin(3 * w * n) + 0.25 * np.sin(4 * w * n) + np.sin(4 * w * n)
+            ak = np.zeros(len(s))
         if stimulus == 'triangle':
-            s = np.array(triangle(pitch[k], fs, duration[k]*tempo))
+            s = np.array(triangle(duration[k], pitch[k], 1, fs, tempo))
+            ak = np.zeros(len(s))
         if len(env) == 5:
             s = adsr_profile(env, s)
         if len(env) == 2:
             s = exponent_profile(env, s)
+        if akk == True:
+            ak = ak + s
         music = np.append(music, s)
+    music = np.append(music, ak)
     return music
 
 def plot_zf(music, fs):
     t = np.arange(0, len(music)/fs, 1/fs)
     plt.figure(figsize=(15,5))
     plt.plot(t, music)
-    plt.axis([0, len(music)/fs, min(music), max(music)])
+    plt.axis([0, len(music)/fs, -1, 1])
     plt.title('Zeitverlauf des Signals')
     plt.xlabel('t in s')
     plt.show()
@@ -135,7 +140,7 @@ def plot_adsr(env):
     plt.annotate('tS', xy=(tS * 100, 0), xytext=(tS * 100 + 1, 0.05))
     plt.annotate('ED', xy=(1, ED), xytext=(1, ED + 0.02))
     plt.annotate('ES', xy=(1, ES), xytext=(1, ES + 0.02))
-    plt.savefig('images/adsr.jpg')
+    plt.savefig('image/adsr.jpg')
     plt.show()
 
 def plot_exponent(env):
@@ -154,5 +159,5 @@ def plot_exponent(env):
 
     plt.annotate('tA', xy=(tA * 100, 0), xytext=(tA * 100 + 1, 0.05))
     plt.annotate('EE', xy=(1, EE), xytext=(1, EE + 0.02))
-    plt.savefig('images/exponent.jpg')
+    plt.savefig('image/exponent.jpg')
     plt.show()

@@ -179,7 +179,7 @@ def upSampleFilterDownSample(x, h, L, M):
         y = np.zeros((np.ceil(N*L/float(M)), nchan))
     else:
         nchan = 1
-        y = np.zeros(np.ceil(N*L/float(M)))
+        y = np.zeros(int(np.ceil(N*L/float(M))))
     
     # Init the output index
     y_i = 0
