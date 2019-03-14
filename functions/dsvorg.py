@@ -143,21 +143,23 @@ def read(file):
     return fs, data_file
     
     
-def spektrum(fs, data_in):
+def spektrum(fs, data_in, descr=True):
     f = np.linspace(0, fs/2, len(data_in)/2)
     A = np.abs(fft(data_in))[0:int(len(data_in)/2)]/len(data_in)
     plt.plot(f, np.abs(fft(data_in))[0:int(len(data_in)/2)]/len(data_in))
     plt.axis([0,8000,0,max(np.abs(fft(data_in))[0:int(len(data_in)/2)]/len(data_in))])
-    plt.title('Spektrum')
-    plt.xlabel('f in Hz')
+    if descr == True:
+        plt.title('Spektrum')
+        plt.xlabel('f in Hz')
     #plt.axis('tight')
 
-def spektrogramm(fs, data_in, fmax=8000):
+def spektrogramm(fs, data_in, fmax=8000, descr=True):
     specgram(data_in, NFFT=1024, Fs=fs, noverlap=512, cmap=None, window=None)
     #fig = plt.figure(figsize=(15,3))
     plt.axis([0,len(data_in)/fs,0,fmax])
-    plt.title('Spektrogramm')
-    plt.xlabel('t in s')
+    if descr == True:
+        plt.title('Spektrogramm')
+        plt.xlabel('t in s')
     #plt.axis('tight')
 
    
@@ -381,7 +383,7 @@ def data_comp(data_dyn, data, fs):
     plt.grid()
     plt.title('Vergleich beider Signale')
     plt.xlabel('t in s')
-    plt.savefig('image\\dynamic.jpg')
+    plt.savefig('images\\dynamic.jpg')
     plt.show()
 
 def test_dyn(file, threshold, ratio, typ):

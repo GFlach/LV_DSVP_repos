@@ -12,7 +12,7 @@ from scipy.signal import freqz
 import matplotlib.pyplot as plt
 import numpy as np
 #from scipy.io import wavfile
-#from dsv import dsvorg
+import functions.dsvorg as do
 
 
 def butter_hp_filter(data, fgu=1000, fs=44100, order=5):
@@ -94,6 +94,21 @@ def bandfilter(fgu=1000, fgo=1000, order=5):
     plt.grid(True)
     plt.axis([0,4000,0,1.5])
     plt.title('Bandfilter Ordnung %s' %order)    
+
+def filtertest(file, fnr):
+    if fnr == 1:
+        fgu = 1000
+        fgo = 1000
+        order = 12
+        typ = 'lp'
+    if fnr == 3:
+        fgo = 1000
+        fgu = 1000
+        order = 11
+        typ = 'hp'
+    fs, data_in = do.load_data(file)
+    data_out = filter_appl(fs, data_in, fgu=fgu, fgo=fgo, order=order, typ=typ)
+    return(data_out)
 
 
 ##filter_design(44100, 500, 2000)
