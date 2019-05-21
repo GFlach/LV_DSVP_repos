@@ -83,6 +83,7 @@ def create_music(pitch, duration, stimulus, env, tempo, fs, ow=[]):
             w = 2 * np.pi/fs * pitch[k]
             for a in np.arange(0, len(ow)):
                 s = s + ow[a] * np.cos(a * w * n)
+            s = s - np.mean(s)
         if stimulus == 'triangle':
             s = np.array(triangle(pitch[k], fs, duration[k]*tempo))
         if len(env) == 5:
@@ -94,7 +95,7 @@ def create_music(pitch, duration, stimulus, env, tempo, fs, ow=[]):
 
 def plot_zf(music, fs):
     t = np.arange(0, len(music)/fs, 1/fs)
-    plt.figure(figsize=(15,5))
+    plt.figure(figsize=(12,4))
     plt.plot(t, music)
     plt.axis([0, len(music)/fs, min(music), max(music)])
     plt.title('Zeitverlauf des Signals')
@@ -102,7 +103,7 @@ def plot_zf(music, fs):
     plt.show()
 
 def plot_stspec(music, fs):
-    plt.figure(figsize=(15,5))
+    plt.figure(figsize=(12,4))
     atw_zf = 256
     plt.specgram(music, NFFT=atw_zf, Fs=fs, noverlap=0, cmap='hsv')
     plt.title('Kurzzeitspektrum')
@@ -156,3 +157,79 @@ def plot_exponent(env):
     plt.annotate('EE', xy=(1, EE), xytext=(1, EE + 0.02))
     plt.savefig('images/exponent.jpg')
     plt.show()
+def klang(env = [0.01, 0.1], ow = [1, 0.5, 0.5, 0.5, 0.45]):
+    stimulus = 'klang'
+    A = 440
+    pitch = np.array([A])
+    duration = np.array([1])
+    tempo = 0.5
+    fs = 8000
+    music = create_music(pitch, duration, stimulus, env, tempo, fs, ow= ow)
+    return music
+
+def triang(env):
+    stimulus = 'triangle'
+    A = 440
+    pitch = np.array([A])
+    duration = np.array([1])
+    tempo = 0.5
+    fs = 8000
+    ow = []
+    music = create_music(pitch, duration, stimulus, env, tempo, fs, ow= ow)
+    return music
+
+def accord(pitch, env, ow):
+    duration = np.array([1, 1, 1, 1])
+    tempo = 1/2
+    fs = 8000
+    stimulus = 'klang'
+    music = create_music(pitch, duration, stimulus, env, tempo, fs, ow=ow)
+    return music
+
+def ton_prelude(env):
+    A = 220
+    Dh = A * 2**(5/12)
+    C = A * 2**(3/12)
+    B = A * 2**(2/12)
+    G = A * 2**(-2/12)
+    Fis = A * 2**(-3/12)
+    E = A * 2**(-5/12)
+    D = A * 2**(-7/12)
+    pitch = np.array([D, G, G, A, B, G, Dh, B, B, C, Dh, C, B, C, Dh, A, G, A, B, A])
+    duration = np.array([2, 2, 1, 1, 2, 2, 4, 3, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2])
+    tempo = 1/4
+    fs = 8000
+    music = create_music(pitch, duration, 'ton', env, tempo, fs, ow = [1])
+    return (music)
+
+def klang_prelude(env):
+    A = 220
+    Dh = A * 2**(5/12)
+    C = A * 2**(3/12)
+    B = A * 2**(2/12)
+    G = A * 2**(-2/12)
+    Fis = A * 2**(-3/12)
+    E = A * 2**(-5/12)
+    D = A * 2**(-7/12)
+    pitch = np.array([D, G, G, A, B, G, Dh, B, B, C, Dh, C, B, C, Dh, A, G, A, B, A])
+    duration = np.array([2, 2, 1, 1, 2, 2, 4, 3, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2])
+    tempo = 1/4
+    fs = 8000
+    music = create_music(pitch, duration, 'klang', env, tempo, fs, ow = [1, 0.5, 0.5, 0.5, 0.45])
+    return (music)
+
+def triang_prelude(env):
+    A = 220
+    Dh = A * 2**(5/12)
+    C = A * 2**(3/12)
+    B = A * 2**(2/12)
+    G = A * 2**(-2/12)
+    Fis = A * 2**(-3/12)
+    E = A * 2**(-5/12)
+    D = A * 2**(-7/12)
+    pitch = np.array([D, G, G, A, B, G, Dh, B, B, C, Dh, C, B, C, Dh, A, G, A, B, A])
+    duration = np.array([2, 2, 1, 1, 2, 2, 4, 3, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2])
+    tempo = 1/4
+    fs = 8000
+    music = create_music(pitch, duration, 'triangle', env, tempo, fs, ow = [])
+    return (music)
